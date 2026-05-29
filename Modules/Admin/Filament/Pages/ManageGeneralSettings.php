@@ -27,13 +27,13 @@ class ManageGeneralSettings extends SettingsPage
 {
     protected static string $settings = GeneralSettings::class;
 
-    protected static ?string $title = 'Genel Ayarlar';
+    protected static ?string $title = 'General Settings';
 
-    protected static ?string $navigationLabel = 'Genel Ayarlar';
+    protected static ?string $navigationLabel = 'General Settings';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Ayarlar';
+    protected static string|UnitEnum|null $navigationGroup = 'Settings';
 
     protected static ?int $navigationSort = 1;
 
