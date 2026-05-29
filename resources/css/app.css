@@ -89,6 +89,11 @@ h6 {
     overflow-x: clip;
 }
 
+body.oc-header-menu-open .market-nav-surface,
+body.oc-header-menu-open .oc-nav-wrap {
+    overflow: visible;
+}
+
 .oc-nav-wrap {
     max-width: 1320px;
     margin: 0 auto;
@@ -194,7 +199,7 @@ h6 {
 
 .oc-location[open],
 .oc-account-menu[open] {
-    z-index: 90;
+    z-index: 120;
 }
 
 .oc-location-trigger {
@@ -576,6 +581,7 @@ h6 {
 
 .oc-account-menu {
     position: relative;
+    flex-shrink: 0;
 }
 
 .oc-account-trigger {
@@ -590,6 +596,7 @@ h6 {
     gap: 0.6rem;
     box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
     transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
 }
 
 .oc-account-trigger:hover {
@@ -612,6 +619,11 @@ h6 {
     height: 1rem;
     flex-shrink: 0;
     opacity: 0.84;
+    transition: transform 0.2s ease;
+}
+
+.oc-account-menu[open] .oc-account-chevron {
+    transform: rotate(180deg);
 }
 
 .oc-account-panel {
@@ -855,9 +867,13 @@ h6 {
         pointer-events: none;
     }
 
+    body.oc-header-menu-open .oc-nav-main {
+        z-index: 100;
+    }
+
     .oc-account-panel {
-        top: auto;
-        bottom: calc(100% + 12px);
+        left: auto;
+        right: 0;
     }
 
     .oc-category-track {
