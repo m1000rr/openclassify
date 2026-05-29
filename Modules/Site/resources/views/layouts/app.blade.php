@@ -956,17 +956,21 @@
 
             const menus = Array.from(wrap.querySelectorAll('.oc-account-menu, [data-location-widget]'));
 
+            const syncHeaderMenuState = () => {
+                document.body.classList.toggle('oc-header-menu-open', menus.some((menu) => menu.open));
+            };
+
             menus.forEach((menu) => {
                 menu.addEventListener('toggle', () => {
-                    if (!menu.open) {
-                        return;
+                    if (menu.open) {
+                        menus.forEach((other) => {
+                            if (other !== menu && other.open) {
+                                other.removeAttribute('open');
+                            }
+                        });
                     }
 
-                    menus.forEach((other) => {
-                        if (other !== menu && other.open) {
-                            other.removeAttribute('open');
-                        }
-                    });
+                    syncHeaderMenuState();
                 });
             });
 
@@ -978,6 +982,7 @@
                 }
 
                 menus.forEach((menu) => menu.removeAttribute('open'));
+                syncHeaderMenuState();
             });
         })();
     </script>

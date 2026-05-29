@@ -628,6 +628,7 @@ h6 {
     backdrop-filter: blur(18px);
     display: grid;
     gap: 0.25rem;
+    pointer-events: auto;
 }
 
 .oc-account-panel form {
@@ -849,8 +850,14 @@ h6 {
     }
 
     .oc-nav-wrap:has(.oc-account-menu[open]) .oc-category-row,
-    .oc-nav-wrap:has(.oc-location[open]) .oc-category-row {
+    .oc-nav-wrap:has(.oc-location[open]) .oc-category-row,
+    body.oc-header-menu-open .oc-category-row {
         pointer-events: none;
+    }
+
+    .oc-account-panel {
+        top: auto;
+        bottom: calc(100% + 12px);
     }
 
     .oc-category-track {
