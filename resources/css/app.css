@@ -618,7 +618,7 @@ h6 {
     position: absolute;
     top: calc(100% + 12px);
     left: 0;
-    z-index: 20;
+    z-index: 100;
     min-width: 13rem;
     padding: 0.6rem;
     border: 1px solid rgba(29, 29, 31, 0.08);
@@ -628,6 +628,12 @@ h6 {
     backdrop-filter: blur(18px);
     display: grid;
     gap: 0.25rem;
+}
+
+.oc-account-panel form {
+    display: block;
+    width: 100%;
+    margin: 0;
 }
 
 .oc-account-link {
@@ -654,6 +660,7 @@ h6 {
     background: transparent;
     text-align: left;
     cursor: pointer;
+    font: inherit;
 }
 
 .header-utility.oc-compact-menu-trigger,
@@ -739,6 +746,8 @@ h6 {
     }
 
     .oc-nav-main {
+        position: relative;
+        z-index: 5;
         grid-template-columns: auto minmax(0, 1fr) auto;
         align-items: center;
         gap: 16px;
@@ -833,8 +842,15 @@ h6 {
     }
 
     .oc-category-row {
+        position: relative;
+        z-index: 1;
         display: block;
         overflow: hidden;
+    }
+
+    .oc-nav-wrap:has(.oc-account-menu[open]) .oc-category-row,
+    .oc-nav-wrap:has(.oc-location[open]) .oc-category-row {
+        pointer-events: none;
     }
 
     .oc-category-track {
