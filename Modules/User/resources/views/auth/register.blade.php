@@ -75,6 +75,7 @@
             <input
                 id="password"
                 name="password"
+                type="password"
                 x-bind:type="show ? 'text' : 'password'"
                 class="user-auth-input has-trailing"
                 autocomplete="new-password"
@@ -102,6 +103,7 @@
             <input
                 id="password_confirmation"
                 name="password_confirmation"
+                type="password"
                 x-bind:type="show ? 'text' : 'password'"
                 class="user-auth-input has-trailing"
                 autocomplete="new-password"
