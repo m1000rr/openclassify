@@ -1,0 +1,20 @@
+{
+    "agents": [
+        "codex",
+        "gemini",
+        "copilot"
+    ],
+    "guidelines": true,
+    "herd_mcp": false,
+    "mcp": true,
+    "nightwatch_mcp": false,
+    "packages": [
+        "filament/filament",
+        "laravel/ai"
+    ],
+    "sail": false,
+    "skills": [
+        "tailwindcss-development",
+        "developing-with-ai-sdk"
+    ]
+}

@@ -1,0 +1,15 @@
+{
+    "Category": true,
+    "Listing": true,
+    "Location": true,
+    "Admin": true,
+    "Theme": true,
+    "Conversation": true,
+    "Favorite": true,
+    "User": true,
+    "Video": true,
+    "S3": true,
+    "Demo": true,
+    "Panel": true,
+    "Site": true
+}
