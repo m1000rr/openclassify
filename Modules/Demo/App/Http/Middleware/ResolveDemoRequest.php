@@ -16,6 +16,12 @@ class ResolveDemoRequest
 
     public function handle(Request $request, Closure $next)
     {
+        if ($this->shouldUsePublicSchema($request)) {
+            $this->demoSchemaManager->activatePublic();
+
+            return $next($request);
+        }
+
         if (! $this->demoSchemaManager->enabled()) {
             return $next($request);
         }
@@ -73,5 +79,20 @@ class ResolveDemoRequest
     private function hasAuthSession(Request $request): bool
     {
         return filled($request->session()->get(Auth::guard('web')->getName()));
+    }
+
+    private function shouldUsePublicSchema(Request $request): bool
+    {
+        if ($request->is('admin', 'admin/*')) {
+            return true;
+        }
+
+        if (! $request->is('livewire/*')) {
+            return false;
+        }
+
+        $refererPath = parse_url((string) $request->headers->get('referer', ''), PHP_URL_PATH) ?: '';
+
+        return str_starts_with($refererPath, '/admin');
     }
 }
