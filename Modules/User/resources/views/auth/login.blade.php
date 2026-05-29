@@ -38,6 +38,7 @@
             <input
                 id="password"
                 name="password"
+                type="password"
                 x-bind:type="show ? 'text' : 'password'"
                 class="user-auth-input has-trailing"
                 autocomplete="current-password"
