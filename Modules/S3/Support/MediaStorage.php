@@ -4,6 +4,7 @@ namespace Modules\S3\Support;
 
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Modules\Demo\App\Support\DemoStoragePath;
 use Modules\Site\App\Settings\GeneralSettings;
 use Throwable;
 
@@ -75,6 +76,11 @@ final class MediaStorage
         }
 
         return ! self::isExternalUrl($path) && ! self::isAssetPath($path);
+    }
+
+    public static function managedDirectory(string $directory): string
+    {
+        return DemoStoragePath::prefix(trim($directory, '/'));
     }
 
     public static function url(mixed $path, mixed $disk = null): ?string

@@ -24,7 +24,7 @@ final class HomeSlideFormSchema
                     ->label('Slide Image')
                     ->image()
                     ->disk(fn (Get $get): string => MediaStorage::storedDisk($get('disk'), self::mediaDriver($get)))
-                    ->directory('home-slides')
+                    ->directory(MediaStorage::managedDirectory('home-slides'))
                     ->visibility('public')
                     ->imageEditor()
                     ->imagePreviewHeight('200')

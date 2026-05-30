@@ -2,11 +2,13 @@
 
 namespace Modules\User\App\Support;
 
+use Illuminate\Support\Str;
+
 final class DemoUserCatalog
 {
     public static function records(): array
     {
-        $password = (string) config('demo.user_password', '236330');
+        $password = static::resolvePassword();
 
         return [
             [
@@ -45,6 +47,17 @@ final class DemoUserCatalog
                 'is_admin' => false,
             ],
         ];
+    }
+
+    public static function resolvePassword(): string
+    {
+        $configured = trim((string) config('demo.user_password', ''));
+
+        if ($configured !== '') {
+            return $configured;
+        }
+
+        return Str::password(20);
     }
 
     public static function emails(): array

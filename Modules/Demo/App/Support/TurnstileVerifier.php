@@ -22,10 +22,15 @@ final class TurnstileVerifier
         return $this->siteKey() !== '' && $this->secretKey() !== '';
     }
 
+    public function requiredForDemo(): bool
+    {
+        return ! app()->environment('local', 'testing');
+    }
+
     public function verify(?string $token, ?string $ip = null): bool
     {
         if (! $this->enabled()) {
-            return true;
+            return ! $this->requiredForDemo();
         }
 
         if (app()->environment('local', 'testing')) {

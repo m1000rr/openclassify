@@ -9,7 +9,8 @@ return [
     'active_schema' => null,
     'active_uuid' => null,
     'login_email' => env('DEMO_LOGIN_EMAIL', 'a@a.com'),
-    'user_password' => env('DEMO_USER_PASSWORD', '236330'),
+    'user_password' => env('DEMO_USER_PASSWORD'),
+    'max_concurrent_instances' => (int) env('DEMO_MAX_CONCURRENT_INSTANCES', 25),
     'public_schema' => env('DEMO_PUBLIC_SCHEMA', 'public'),
     'turnstile' => [
         'enabled' => (bool) env('DEMO_TURNSTILE_ENABLED', false),

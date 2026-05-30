@@ -38,8 +38,8 @@ class Listing extends Model implements HasMedia
 
     protected $fillable = [
         'title', 'description', 'price', 'currency', 'category_id',
-        'user_id', 'status', 'images', 'custom_fields', 'slug',
-        'contact_phone', 'contact_email', 'is_featured', 'expires_at',
+        'images', 'custom_fields',
+        'contact_phone', 'contact_email', 'expires_at',
         'city', 'country', 'latitude', 'longitude', 'location',
     ];
 
@@ -636,19 +636,67 @@ class Listing extends Model implements HasMedia
         $payload['user_id'] = $userId;
         $payload['currency'] = ListingPanelHelper::normalizeCurrency($data['currency'] ?? null);
         $payload['slug'] = $slug;
-        $payload['status'] = 'pending';
 
-        return static::query()->create($payload);
+        $listing = static::query()->make($payload);
+        $listing->save();
+
+        return $listing;
+    }
+
+    public function applyAdminFormData(array $data): void
+    {
+        $this->fill(Arr::only($data, [
+            'title',
+            'description',
+            'price',
+            'currency',
+            'category_id',
+            'contact_phone',
+            'contact_email',
+            'expires_at',
+            'country',
+            'city',
+            'latitude',
+            'longitude',
+            'custom_fields',
+            'images',
+        ]));
+
+        foreach (['slug', 'user_id', 'is_featured'] as $attribute) {
+            if (array_key_exists($attribute, $data)) {
+                $this->setAttribute($attribute, $data[$attribute]);
+            }
+        }
+
+        if (array_key_exists('status', $data)) {
+            $this->applyAdminStatus($data['status']);
+        }
+    }
+
+    private function applyAdminStatus(mixed $status): void
+    {
+        $target = match (true) {
+            $status instanceof ListingStatus => $status::class,
+            is_string($status) && class_exists($status) => $status,
+            default => match ((string) $status) {
+                'active' => ActiveListingStatus::class,
+                'pending' => PendingListingStatus::class,
+                'sold' => SoldListingStatus::class,
+                'expired' => ExpiredListingStatus::class,
+                default => throw new \InvalidArgumentException('Invalid listing status.'),
+            },
+        };
+
+        if ($this->status::class === $target) {
+            return;
+        }
+
+        $this->status->transitionTo($target);
     }
 
     private function transitionPanelStatusTo(string $status): void
     {
-        $this->status->transitionTo(match ($status) {
-            'pending' => PendingListingStatus::class,
-            'sold' => SoldListingStatus::class,
-            'expired' => ExpiredListingStatus::class,
-            default => throw new \InvalidArgumentException('Invalid listing status transition.'),
-        });
+        $this->applyAdminStatus($status);
         $this->save();
     }
 

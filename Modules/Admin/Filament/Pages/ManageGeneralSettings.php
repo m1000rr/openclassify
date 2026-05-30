@@ -122,7 +122,7 @@ class ManageGeneralSettings extends SettingsPage
                     ->label('Site Logo')
                     ->image()
                     ->disk(fn (Get $get): string => MediaStorage::storedDisk($get('site_logo_disk'), $get('media_disk')))
-                    ->directory('settings')
+                    ->directory(MediaStorage::managedDirectory('settings'))
                     ->visibility('public')
                     ->afterStateUpdated(function (Get $get, Set $set, mixed $state): void {
                         $set(

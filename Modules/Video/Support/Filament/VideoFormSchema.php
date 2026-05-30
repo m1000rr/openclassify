@@ -128,7 +128,7 @@ class VideoFormSchema
         return FileUpload::make('upload_path')
             ->label('Source video')
             ->disk(fn (?Video $record): string => MediaStorage::storedDisk($record?->upload_disk))
-            ->directory(trim((string) config('video.upload_directory', 'videos/uploads'), '/'))
+            ->directory(MediaStorage::managedDirectory(trim((string) config('video.upload_directory', 'videos/uploads'), '/')))
             ->visibility('public')
             ->acceptedFileTypes([
                 'video/mp4',
