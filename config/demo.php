@@ -7,6 +7,8 @@ return [
     'schema_prefix' => env('DEMO_SCHEMA_PREFIX', 'demo_'),
     'cookie_name' => env('DEMO_COOKIE_NAME', 'oc2_demo'),
     'login_email' => env('DEMO_LOGIN_EMAIL', 'a@a.com'),
+    'user_password' => env('DEMO_USER_PASSWORD'),
+    'max_concurrent_instances' => (int) env('DEMO_MAX_CONCURRENT_INSTANCES', 25),
     'public_schema' => env('DEMO_PUBLIC_SCHEMA', 'public'),
     'turnstile' => [
         'enabled' => (bool) env('DEMO_TURNSTILE_ENABLED', false),

@@ -25,6 +25,12 @@ class DemoController extends Controller
         $redirectTo = $this->sanitizeRedirectTarget($request->input('redirect_to'))
             ?? route('home');
 
+        if ($turnstileVerifier->requiredForDemo() && ! $turnstileVerifier->enabled()) {
+            return redirect()
+                ->to($redirectTo)
+                ->with('error', 'Security verification must be enabled before starting a demo.');
+        }
+
         if ($turnstileVerifier->enabled() && ! $turnstileVerifier->configured()) {
             return redirect()
                 ->to($redirectTo)
@@ -78,7 +84,9 @@ class DemoController extends Controller
             Cookie::queue(Cookie::forget($cookieName));
             $demoSchemaManager->activatePublic();
 
-            return redirect()->to($redirectTo)->with('error', 'Demo could not be prepared right now.');
+            return redirect()->to($redirectTo)->with('error', $exception instanceof \RuntimeException
+                ? $exception->getMessage()
+                : 'Demo could not be prepared right now.');
         }
     }
 

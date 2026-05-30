@@ -128,7 +128,7 @@ class VideoFormSchema
         return FileUpload::make('upload_path')
             ->label('Source video')
             ->disk(fn (): string => LocalMedia::disk())
-            ->directory(trim((string) config('video.upload_directory', 'videos/uploads'), '/'))
+            ->directory(LocalMedia::managedDirectory(trim((string) config('video.upload_directory', 'videos/uploads'), '/')))
             ->visibility('public')
             ->acceptedFileTypes([
                 'video/mp4',

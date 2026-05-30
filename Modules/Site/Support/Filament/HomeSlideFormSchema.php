@@ -20,7 +20,7 @@ final class HomeSlideFormSchema
                     ->label('Slide Image')
                     ->image()
                     ->disk(LocalMedia::disk())
-                    ->directory('home-slides')
+                    ->directory(LocalMedia::managedDirectory('home-slides'))
                     ->visibility('public')
                     ->imageEditor()
                     ->imagePreviewHeight('200')

@@ -142,6 +142,8 @@ final class DemoSchemaManager
 
     private function createFresh(string $uuid): DemoInstance
     {
+        $this->ensureProvisioningCapacity();
+
         $schema = $this->schemaNameFor($uuid);
 
         try {
@@ -205,6 +207,18 @@ final class DemoSchemaManager
     {
         if (! $this->enabled()) {
             throw new \RuntimeException('Demo mode is disabled.');
+        }
+    }
+
+    private function ensureProvisioningCapacity(): void
+    {
+        $maxInstances = max(1, (int) config('demo.max_concurrent_instances', 25));
+        $activeInstances = DemoInstance::query()
+            ->where('expires_at', '>', now())
+            ->count();
+
+        if ($activeInstances >= $maxInstances) {
+            throw new \RuntimeException('Demo capacity is full. Please try again in a few minutes.');
         }
     }
 

@@ -97,7 +97,7 @@ class ManageGeneralSettings extends SettingsPage
                     ->label('Site Logo')
                     ->image()
                     ->disk(LocalMedia::disk())
-                    ->directory('settings')
+                    ->directory(LocalMedia::managedDirectory('settings'))
                     ->visibility('public'),
                 TextInput::make('sender_name')
                     ->label('Sender Name')

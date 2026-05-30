@@ -245,7 +245,6 @@ class ListingSeeder extends Seeder
         $listing = Listing::updateOrCreate(
             ['slug' => $data['slug']],
             [
-                'slug' => $data['slug'],
                 'title' => $data['title'],
                 'description' => $data['description'],
                 'price' => $data['price'],
@@ -253,14 +252,19 @@ class ListingSeeder extends Seeder
                 'city' => $data['city'],
                 'country' => $data['country'],
                 'category_id' => $category->id,
-                'user_id' => $user->id,
-                'status' => 'active',
                 'contact_email' => $user->email,
                 'contact_phone' => $data['contact_phone'],
-                'is_featured' => $data['is_featured'],
                 'expires_at' => $data['expires_at'],
             ]
         );
+
+        $listing->applyAdminFormData([
+            'slug' => $data['slug'],
+            'user_id' => $user->id,
+            'status' => 'active',
+            'is_featured' => $data['is_featured'],
+        ]);
+        $listing->save();
 
         $listing->forceFill([
             'created_at' => $data['created_at'],

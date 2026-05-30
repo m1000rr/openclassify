@@ -3,6 +3,7 @@
 namespace Modules\Site\App\Support;
 
 use Illuminate\Support\Facades\Storage;
+use Modules\Demo\App\Support\DemoStoragePath;
 
 final class LocalMedia
 {
@@ -20,6 +21,11 @@ final class LocalMedia
         return $value !== ''
             && ! self::isExternalUrl($value)
             && ! self::isAssetPath($value);
+    }
+
+    public static function managedDirectory(string $directory): string
+    {
+        return DemoStoragePath::prefix(trim($directory, '/'));
     }
 
     public static function url(mixed $path): ?string

@@ -2,47 +2,62 @@
 
 namespace Modules\User\App\Support;
 
+use Illuminate\Support\Str;
+
 final class DemoUserCatalog
 {
     public static function records(): array
     {
+        $password = static::resolvePassword();
+
         return [
             [
                 'email' => 'a@a.com',
                 'name' => 'Admin',
-                'password' => '236330',
+                'password' => $password,
                 'phone' => '+905551112233',
                 'is_admin' => true,
             ],
             [
                 'email' => 'b@b.com',
                 'name' => 'Member',
-                'password' => '236330',
+                'password' => $password,
                 'phone' => '+905551112244',
                 'is_admin' => false,
             ],
             [
                 'email' => 'c@c.com',
                 'name' => 'Ava Carter',
-                'password' => '236330',
+                'password' => $password,
                 'phone' => '+905551112255',
                 'is_admin' => false,
             ],
             [
                 'email' => 'd@d.com',
                 'name' => 'Liam Stone',
-                'password' => '236330',
+                'password' => $password,
                 'phone' => '+905551112266',
                 'is_admin' => false,
             ],
             [
                 'email' => 'e@e.com',
                 'name' => 'Mila Reed',
-                'password' => '236330',
+                'password' => $password,
                 'phone' => '+905551112277',
                 'is_admin' => false,
             ],
         ];
+    }
+
+    public static function resolvePassword(): string
+    {
+        $configured = trim((string) config('demo.user_password', ''));
+
+        if ($configured !== '') {
+            return $configured;
+        }
+
+        return Str::password(20);
     }
 
     public static function emails(): array

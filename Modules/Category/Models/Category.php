@@ -302,15 +302,53 @@ class Category extends Model
 
     public function breadcrumbTrail(): Collection
     {
-        $trail = collect();
-        $current = $this;
+        $ancestorIds = $this->collectAncestorIds();
 
-        while ($current) {
-            $trail->prepend($current);
-            $current = $current->parent;
+        if ($ancestorIds === []) {
+            return collect([$this]);
         }
 
-        return $trail;
+        $ancestors = static::query()
+            ->whereIn('id', $ancestorIds)
+            ->get()
+            ->keyBy('id');
+
+        $trail = collect();
+
+        foreach (array_reverse($ancestorIds) as $ancestorId) {
+            $ancestor = $ancestors->get($ancestorId);
+
+            if ($ancestor) {
+                $trail->push($ancestor);
+            }
+        }
+
+        return $trail->push($this);
+    }
+
+    private function collectAncestorIds(): array
+    {
+        $ancestorIds = [];
+        $node = $this->relationLoaded('parent') ? $this->parent : null;
+
+        while ($node) {
+            $ancestorIds[] = (int) $node->getKey();
+            $node = $node->relationLoaded('parent') ? $node->parent : null;
+        }
+
+        if ($ancestorIds !== [] || ! $this->parent_id) {
+            return $ancestorIds;
+        }
+
+        $parentId = $this->parent_id;
+        $guard = 0;
+
+        while ($parentId !== null && $guard++ < 32) {
+            $ancestorIds[] = $parentId;
+            $parentId = static::query()->whereKey($parentId)->value('parent_id');
+        }
+
+        return $ancestorIds;
     }
 
     public function listingCustomFields(): HasMany

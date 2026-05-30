@@ -12,7 +12,11 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Modules\Category\Models\Category;
 use Modules\Conversation\App\Models\Conversation;
+use Modules\Listing\States\ActiveListingStatus;
+use Modules\Listing\States\ExpiredListingStatus;
 use Modules\Listing\States\ListingStatus;
+use Modules\Listing\States\PendingListingStatus;
+use Modules\Listing\States\SoldListingStatus;
 use Modules\Listing\Support\ListingImageViewData;
 use Modules\Listing\Support\ListingPanelHelper;
 use Modules\Site\App\Support\LocalMedia;
@@ -36,8 +40,8 @@ class Listing extends Model implements HasMedia
 
     protected $fillable = [
         'title', 'description', 'price', 'currency', 'category_id',
-        'user_id', 'status', 'images', 'custom_fields', 'slug',
-        'contact_phone', 'contact_email', 'is_featured', 'expires_at',
+        'images', 'custom_fields',
+        'contact_phone', 'contact_email', 'expires_at',
         'city', 'country', 'latitude', 'longitude', 'location', 'view_count',
     ];
 
@@ -635,12 +639,80 @@ class Listing extends Model implements HasMedia
             $slug = $baseSlug.'-'.Str::random(6);
         } while (static::query()->where('slug', $slug)->exists());
 
-        $payload = $data;
+        $payload = Arr::only($data, [
+            'title',
+            'description',
+            'price',
+            'category_id',
+            'contact_phone',
+            'contact_email',
+            'country',
+            'city',
+            'latitude',
+            'longitude',
+            'custom_fields',
+            'expires_at',
+        ]);
+
         $payload['user_id'] = $userId;
         $payload['currency'] = ListingPanelHelper::normalizeCurrency($data['currency'] ?? null);
         $payload['slug'] = $slug;
 
-        return static::query()->create($payload);
+        $listing = static::query()->make($payload);
+        $listing->save();
+
+        return $listing;
+    }
+
+    public function applyAdminFormData(array $data): void
+    {
+        $this->fill(Arr::only($data, [
+            'title',
+            'description',
+            'price',
+            'currency',
+            'category_id',
+            'contact_phone',
+            'contact_email',
+            'expires_at',
+            'country',
+            'city',
+            'latitude',
+            'longitude',
+            'custom_fields',
+            'images',
+        ]));
+
+        foreach (['slug', 'user_id', 'is_featured'] as $attribute) {
+            if (array_key_exists($attribute, $data)) {
+                $this->setAttribute($attribute, $data[$attribute]);
+            }
+        }
+
+        if (array_key_exists('status', $data)) {
+            $this->applyAdminStatus($data['status']);
+        }
+    }
+
+    private function applyAdminStatus(mixed $status): void
+    {
+        $target = match (true) {
+            $status instanceof ListingStatus => $status::class,
+            is_string($status) && class_exists($status) => $status,
+            default => match ((string) $status) {
+                'active' => ActiveListingStatus::class,
+                'pending' => PendingListingStatus::class,
+                'sold' => SoldListingStatus::class,
+                'expired' => ExpiredListingStatus::class,
+                default => throw new \InvalidArgumentException('Invalid listing status.'),
+            },
+        };
+
+        if ($this->status::class === $target) {
+            return;
+        }
+
+        $this->status->transitionTo($target);
     }
 
     public function registerMediaCollections(): void
