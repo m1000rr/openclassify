@@ -590,6 +590,41 @@ class Listing extends Model implements HasMedia
         $this->refresh();
     }
 
+    public function hasContactDetails(): bool
+    {
+        return filled($this->contact_phone) || filled($this->contact_email);
+    }
+
+    public function canRevealContactTo(?User $user): bool
+    {
+        if (! $user || ! $this->hasContactDetails() || ! $this->user_id) {
+            return false;
+        }
+
+        return (int) $this->user_id !== (int) $user->getKey();
+    }
+
+    /**
+     * @return array{phone: string, email: string}
+     */
+    public function contactDetailsFor(?User $user): array
+    {
+        $canAccess = $this->canRevealContactTo($user)
+            || ($user && $this->user_id && (int) $this->user_id === (int) $user->getKey());
+
+        if (! $canAccess) {
+            return [
+                'phone' => '',
+                'email' => '',
+            ];
+        }
+
+        return [
+            'phone' => filled($this->contact_phone) ? (string) $this->contact_phone : '',
+            'email' => filled($this->contact_email) ? (string) $this->contact_email : '',
+        ];
+    }
+
     public function markAsSold(): void
     {
         $this->forceFill([

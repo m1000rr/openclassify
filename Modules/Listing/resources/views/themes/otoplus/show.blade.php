@@ -38,7 +38,6 @@
         : 'New seller';
 
     $referenceCode = '#'.str_pad((string) $listing->getKey(), 8, '0', STR_PAD_LEFT);
-    $canContactSeller = $listing->user && (! auth()->check() || (int) auth()->id() !== (int) $listing->user_id);
     $isOwnListing = auth()->check() && (int) auth()->id() === (int) $listing->user_id;
     $canStartConversation = auth()->check() && $listing->user && ! $isOwnListing;
     $loginRedirectRoute = route('login', ['redirect' => request()->fullUrl()]);
@@ -49,14 +48,34 @@
     $chatStartUrl = route('conversations.start', $listing);
     $chatUnreadCount = max(0, (int) ($chatConversation?->unread_count ?? 0));
 
+    $hasContactDetails = $listing->hasContactDetails();
+    $hasContactPhone = filled($listing->contact_phone);
+    $hasContactEmail = filled($listing->contact_email);
+    $canRevealContact = auth()->check() && ! $isOwnListing && $hasContactDetails;
+    $contactRevealUrl = route('listings.contact', $listing);
+
     $primaryContactHref = null;
     $primaryContactLabel = 'Call';
-    if (filled($listing->contact_phone)) {
-        $primaryContactHref = 'tel:'.preg_replace('/\s+/', '', (string) $listing->contact_phone);
-        $primaryContactLabel = 'Call';
-    } elseif (filled($listing->contact_email)) {
-        $primaryContactHref = 'mailto:'.$listing->contact_email;
-        $primaryContactLabel = 'Email';
+    $primaryContactType = null;
+
+    if ($isOwnListing) {
+        if ($hasContactPhone) {
+            $primaryContactHref = 'tel:'.preg_replace('/\s+/', '', (string) $listing->contact_phone);
+            $primaryContactLabel = 'Call';
+            $primaryContactType = 'phone';
+        } elseif ($hasContactEmail) {
+            $primaryContactHref = 'mailto:'.$listing->contact_email;
+            $primaryContactLabel = 'Email';
+            $primaryContactType = 'email';
+        }
+    } elseif ($hasContactDetails) {
+        if ($hasContactPhone) {
+            $primaryContactLabel = 'Call';
+            $primaryContactType = 'phone';
+        } elseif ($hasContactEmail) {
+            $primaryContactLabel = 'Email';
+            $primaryContactType = 'email';
+        }
     }
 
     $reportEmail = config('mail.from.address', 'support@example.com');
@@ -83,7 +102,13 @@
     $locationText = $locationLabel !== '' ? $locationLabel : 'Location not specified';
 @endphp
 
-<div class="lt-wrap">
+<div
+    class="lt-wrap"
+    @if($canRevealContact)
+        data-contact-reveal-url="{{ $contactRevealUrl }}"
+        data-contact-login-url="{{ $loginRedirectRoute }}"
+    @endif
+>
     <nav class="lt-breadcrumb" aria-label="Breadcrumb">
         <a href="{{ route('home') }}">Home</a>
         @foreach(($breadcrumbCategories ?? collect()) as $crumb)
@@ -261,17 +286,50 @@
                 </div>
             @endif
 
-            @if(filled($listing->contact_phone) || filled($listing->contact_email))
-                <div class="lt-contact-panel">
-                    @if(filled($listing->contact_phone))
-                        <a href="tel:{{ preg_replace('/\s+/', '', (string) $listing->contact_phone) }}" class="lt-contact-primary">
-                            {{ $listing->contact_phone }}
-                        </a>
+            @if($hasContactDetails)
+                <div
+                    class="lt-contact-panel"
+                    @if($canRevealContact)
+                        data-contact-panel
                     @endif
+                >
+                    @if($isOwnListing)
+                        @if($hasContactPhone)
+                            <a href="tel:{{ preg_replace('/\s+/', '', (string) $listing->contact_phone) }}" class="lt-contact-primary">
+                                {{ $listing->contact_phone }}
+                            </a>
+                        @endif
 
-                    @if(filled($listing->contact_email))
-                        <a href="mailto:{{ $listing->contact_email }}" class="lt-contact-secondary">
-                            {{ $listing->contact_email }}
+                        @if($hasContactEmail)
+                            <a href="mailto:{{ $listing->contact_email }}" class="lt-contact-secondary">
+                                {{ $listing->contact_email }}
+                            </a>
+                        @endif
+                    @elseif($canRevealContact)
+                        @if($hasContactPhone)
+                            <button
+                                type="button"
+                                class="lt-contact-reveal lt-contact-primary"
+                                data-contact-reveal
+                                data-contact-type="phone"
+                            >
+                                Show phone
+                            </button>
+                        @endif
+
+                        @if($hasContactEmail)
+                            <button
+                                type="button"
+                                class="lt-contact-reveal lt-contact-secondary"
+                                data-contact-reveal
+                                data-contact-type="email"
+                            >
+                                Show email
+                            </button>
+                        @endif
+                    @else
+                        <a href="{{ $loginRedirectRoute }}" class="lt-contact-login-prompt">
+                            Log in to view seller contact
                         </a>
                     @endif
                 </div>
@@ -293,6 +351,18 @@
 
                     @if($primaryContactHref)
                         <a href="{{ $primaryContactHref }}" class="lt-btn lt-btn-outline">{{ $primaryContactLabel }}</a>
+                    @elseif($primaryContactType && $canRevealContact)
+                        <button
+                            type="button"
+                            class="lt-btn lt-btn-outline"
+                            data-contact-reveal
+                            data-contact-type="{{ $primaryContactType }}"
+                            data-contact-action="navigate"
+                        >
+                            {{ $primaryContactLabel }}
+                        </button>
+                    @elseif($primaryContactType && ! auth()->check())
+                        <a href="{{ $loginRedirectRoute }}" class="lt-btn lt-btn-outline">{{ $primaryContactLabel }}</a>
                     @else
                         <button type="button" class="lt-btn lt-btn-outline" disabled>No contact</button>
                     @endif
@@ -370,6 +440,18 @@
 
                 @if($primaryContactHref)
                     <a href="{{ $primaryContactHref }}" class="lt-btn lt-btn-outline">{{ $primaryContactLabel }}</a>
+                @elseif($primaryContactType && $canRevealContact)
+                    <button
+                        type="button"
+                        class="lt-btn lt-btn-outline"
+                        data-contact-reveal
+                        data-contact-type="{{ $primaryContactType }}"
+                        data-contact-action="navigate"
+                    >
+                        {{ $primaryContactLabel }}
+                    </button>
+                @elseif($primaryContactType && ! auth()->check())
+                    <a href="{{ $loginRedirectRoute }}" class="lt-btn lt-btn-outline">{{ $primaryContactLabel }}</a>
                 @else
                     <button type="button" class="lt-btn lt-btn-outline" disabled>No contact</button>
                 @endif
@@ -647,6 +729,123 @@
 
             buttons.forEach((button) => {
                 button.addEventListener('click', () => activate(button.dataset.tab || 'details'));
+            });
+        });
+
+        const contactRoot = document.querySelector('[data-contact-reveal-url]');
+        const contactRevealUrl = contactRoot?.dataset.contactRevealUrl || '';
+        const contactLoginUrl = contactRoot?.dataset.contactLoginUrl || '';
+        let contactCache = null;
+        let contactLoading = null;
+
+        const contactHrefFor = (type, contact) => {
+            if (type === 'phone' && contact.phone) {
+                return `tel:${String(contact.phone).replace(/\s+/g, '')}`;
+            }
+
+            if (type === 'email' && contact.email) {
+                return `mailto:${contact.email}`;
+            }
+
+            return null;
+        };
+
+        const fetchContactDetails = async () => {
+            if (contactCache) {
+                return contactCache;
+            }
+
+            if (contactLoading) {
+                return contactLoading;
+            }
+
+            contactLoading = fetch(contactRevealUrl, {
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+            }).then(async (response) => {
+                if (response.status === 401 || response.status === 419) {
+                    window.location.href = contactLoginUrl;
+                    throw new Error('login_required');
+                }
+
+                if (! response.ok) {
+                    throw new Error('contact_unavailable');
+                }
+
+                contactCache = await response.json();
+
+                return contactCache;
+            }).finally(() => {
+                contactLoading = null;
+            });
+
+            return contactLoading;
+        };
+
+        const replaceRevealButton = (button, type, contact) => {
+            const href = contactHrefFor(type, contact);
+            const value = type === 'phone' ? contact.phone : contact.email;
+
+            if (! href || ! value) {
+                return;
+            }
+
+            const link = document.createElement('a');
+            link.href = href;
+            link.textContent = button.dataset.contactAction === 'navigate'
+                ? button.textContent
+                : value;
+            link.className = button.classList.contains('lt-contact-secondary')
+                ? 'lt-contact-secondary'
+                : button.classList.contains('lt-contact-primary')
+                    ? 'lt-contact-primary'
+                    : button.className.replace(/\sis-loading\b/g, '').trim();
+
+            button.replaceWith(link);
+        };
+
+        const syncContactReveal = (type, contact) => {
+            document.querySelectorAll(`[data-contact-reveal][data-contact-type="${type}"]`).forEach((button) => {
+                replaceRevealButton(button, type, contact);
+            });
+        };
+
+        document.querySelectorAll('[data-contact-reveal]').forEach((button) => {
+            button.addEventListener('click', async (event) => {
+                event.preventDefault();
+
+                if (! contactRevealUrl) {
+                    return;
+                }
+
+                const type = button.dataset.contactType || '';
+                const shouldNavigate = button.dataset.contactAction === 'navigate';
+
+                button.classList.add('is-loading');
+                button.disabled = true;
+
+                try {
+                    const contact = await fetchContactDetails();
+                    const href = contactHrefFor(type, contact);
+
+                    if (! href) {
+                        button.classList.remove('is-loading');
+                        button.disabled = false;
+                        return;
+                    }
+
+                    syncContactReveal(type, contact);
+
+                    if (shouldNavigate) {
+                        window.location.href = href;
+                    }
+                } catch (error) {
+                    button.classList.remove('is-loading');
+                    button.disabled = false;
+                }
             });
         });
 

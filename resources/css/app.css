@@ -1458,6 +1458,33 @@ summary::-webkit-details-marker {
     color: #4b5563;
 }
 
+.lt-contact-reveal {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
+
+.lt-contact-reveal.is-loading {
+    opacity: 0.55;
+    cursor: wait;
+}
+
+.lt-contact-login-prompt {
+    display: block;
+    color: var(--oc-primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.lt-contact-login-prompt:hover {
+    text-decoration: underline;
+}
+
 .lt-inline-link {
     display: inline-flex;
     margin-top: 14px;

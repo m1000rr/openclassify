@@ -3,6 +3,7 @@
 namespace Modules\Listing\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Modules\Conversation\App\Models\Conversation;
 use Modules\Favorite\App\Models\FavoriteSearch;
 use Modules\Category\Models\Category;
@@ -191,6 +192,13 @@ class ListingController extends Controller
             'themePillCategories',
             'breadcrumbCategories',
         ));
+    }
+
+    public function contact(Listing $listing): JsonResponse
+    {
+        abort_unless($listing->canRevealContactTo(auth()->user()), 403);
+
+        return response()->json($listing->contactDetailsFor(auth()->user()));
     }
 
     public function create()
